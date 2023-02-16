@@ -8,3 +8,6 @@
 ![Screenshot from 2023-02-16 23-45-50](https://user-images.githubusercontent.com/109902921/219459595-25193edb-c81a-4ba3-8045-5de8f7a54005.png)
 ### add card
 ![Screenshot from 2023-02-16 23-47-17](https://user-images.githubusercontent.com/109902921/219459601-3beeb8d4-fc88-4598-a3a5-5db43e5cd52a.png)
+
+## logic error
+![Screenshot from 2023-02-17 00-03-38](https://user-images.githubusercontent.com/109902921/219462654-342fde0e-f668-4cbd-90ae-357a9781246b.png)
