@@ -1,10 +1,10 @@
 import telebot
-from telebot.types import ReplyKeyboardRemove, InlineKeyboardMarkup
+from telebot.types import ReplyKeyboardRemove
 from telebot import custom_filters
 from telebot.storage import StateMemoryStorage
 
 from register_state import StudentRegisterForm
-from messages import share_contact_btn, yes_or_no_inline_btn, courser_btn
+from messages import share_contact_btn, yes_or_no_inline_btn
 from environs import Env
 from utils import write_csv
 
@@ -55,7 +55,7 @@ def set_age(message):
 
 @bot.message_handler(state=StudentRegisterForm.contact, content_types=['contact', 'text'])
 def set_contact(message):
-    bot.send_message(message.from_user.id, "kursni tanlang", reply_markup=ReplyKeyboardRemove())
+    bot.send_message(message.from_user.id, "Kursni nomini kiriting", reply_markup=ReplyKeyboardRemove())
     bot.set_state(message.from_user.id, StudentRegisterForm.language, message.chat.id)
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data['contact'] = message.contact.phone_number
@@ -94,7 +94,7 @@ def set_or_delete_data(call):
         if data == "yes":
             header = list(d.keys())
             write_csv('students.csv', header, d)
-            bot.send_message(call.from_user.id, 'Malumotlar saqlanda')
+            bot.send_message(call.from_user.id, 'Malumotlar saqlandi')
         elif data == 'no':
             bot.send_message(call.from_user.id, 'Malumotlar saqlanmadi /register')
         bot.delete_state(message.from_user.id, message.chat.id)
