@@ -35,7 +35,6 @@ def username_registration(message):
 
 
 def get_trello_username(message):
-    # print(message)
     utils.write_chat_csv('chat.csv', message)
     bot.send_message(message.from_user.id, messages.ADD_SUCCESSFULLY)
 
@@ -73,26 +72,23 @@ def get_board_list(call):
 def get_member_cards(call):
     message = call.message
     list_id = call.data.split("_")[3]
-    trello_username = utils.get_trello_username_by_chat_id('chat.csv', message.from_user.id)
+    trello_username = utils.get_trello_username_by_chat_id('chat.csv', message.chat.id)
     trello = TrelloManager(trello_username)
     card_data = trello.get_cards_on_a_list(list_id)
     msg = utils.get_members_task_messages(card_data, trello.get_member_id())
     if msg:
-        bot.send_message(message.from_user.id, msg)
+        bot.send_message(call.from_user.id, msg, parse_mode='html')
     else:
-        bot.send_message(message.from_user.id, messages.NO_TASKS)
+        bot.send_message(call.from_user.id, messages.NO_TASKS)
 
 
 @bot.message_handler(commands=['new'])
 def create_new_task(message):
-    # print('new task create is working')
-    # print(message.from_user.id)
-
     if not utils.check_chat_id_from_csv('chat.csv', message.from_user.id):
         bot.send_message(message.from_user.id, messages.TRELLO_USERNAME_NOT_FOUND)
     else:
         trello_username = utils.get_trello_username_by_chat_id('chat.csv', message.from_user.id)
-        # print('trello user name ', trello_username)
+
         if trello_username:
             bot.send_message(
                 message.from_user.id,
@@ -102,19 +98,14 @@ def create_new_task(message):
             bot.set_state(message.from_user.id, CreateNewTask.board, message.chat.id)
         else:
             bot.send_message(message.from_user.id, messages.TRELLO_USERNAME_NOT_FOUND)
-    # with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-    #     print("data", data)
 
 
 @bot.callback_query_handler(lambda call: call.data.startswith("new_task"))
 def set_new_task_name(call):
-    print('call back query handler is working')
-    print(call)
     message = call.message
     trello_username = utils.get_trello_username_by_chat_id('chat.csv', message.from_user.id)
     trello = TrelloManager(trello_username)
     board_id = call.data.split("_")[2]
-    print(board_id)
 
     bot.send_message(
         call.from_user.id,
@@ -128,28 +119,17 @@ def set_new_task_name(call):
 
 @bot.callback_query_handler(lambda call: call.data.startswith('list_name'))
 def set_list_id_for_new_task(call):
-    print('set list is working')
     message = call.message
     data_ = call.data.split("_")[2]
-    bot.send_message(call.from_user.id, messages.TASK_NAME)
+    msg = bot.send_message(call.from_user.id, messages.TASK_NAME)
     bot.set_state(call.from_user.id, CreateNewTask.name, message.chat.id)
     with bot.retrieve_data(call.from_user.id, message.chat.id) as data:
         data['task_list_id'] = data_
+    bot.register_next_step_handler(msg, set_task_name)
 
 
-@bot.callback_query_handler(lambda call: call.data.startswith('card_name'))
-def set_list_id_for_new_task(call):
-    message = call.message
-    data_ = call.data.split("_")[2]
-    bot.send_message(call.from_user.id, messages.TASK_NAME)
-    bot.set_state(call.from_user.id, CreateNewTask.name, message.chat.id)
-    with bot.retrieve_data(call.from_user.id, message.chat.id) as data:
-        data['task_list_id'] = data_
-
-
-@bot.message_handler(state=CreateNewTask.name)
 def set_task_name(message):
-    bot.send_message(message.from_user.id, messages.TASK_DECS)
+    msg = bot.send_message(message.from_user.id, messages.TASK_DECS)
     bot.set_state(message.from_user.id, CreateNewTask.description, message.chat.id)
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data['task_name'] = message.text
@@ -157,26 +137,25 @@ def set_task_name(message):
             'name': data.get('name'),
             'desc': data.get('desc')
         }
+    bot.register_next_step_handler(msg, set_task_description)
 
 
-@bot.message_handler(state=CreateNewTask.description)
+# @bot.message_handler(state=CreateNewTask.description)
 def set_task_description(message):
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data['task_desc'] = message.text
         board_id = data['task_board_id']
     trello_username = utils.get_trello_username_by_chat_id('chat.csv', message.from_user.id)
+    keyboard = keyboards.get_members_btn(trello_username, board_id, 'new_task_member')
+    bot.set_state(message.from_user.id, CreateNewTask.members, message.chat.id)
     bot.send_message(
         message.from_user.id,
-        messages.TASK_MEMBERS,
-        keyboards.get_members_btn(trello_username, board_id, 'mew_task_member')
+        messages.TASK_MEMBERS, reply_markup=keyboard
     )
-
-    bot.set_state(message.from_user.id, CreateNewTask.members, message.chat.id)
 
 
 @bot.callback_query_handler(lambda call: call.data.startswith('new_task_member'))
 def get_member_id(call):
-    print('querry is wokring')
     message = call.message
     member_id = call.data.split("_")[3]
     bot.send_message(message.from_user.id, messages.TASK_LABELS)
@@ -209,4 +188,4 @@ if __name__ == "__main__":
     print('started...')
     bot.set_my_commands(my_commands())
     bot.infinity_polling()
-#
+

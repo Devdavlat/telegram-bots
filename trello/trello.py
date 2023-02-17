@@ -10,8 +10,6 @@ env.read_env()
 class TrelloManager:
     trello_api_key = env('TRELLO_API_KEY')
     trello_token = env('TRELLO_TOKEN')
-    # print(trello_token)
-    # print(trello_api_key)
 
     def __init__(self, username):
         self.username = username
@@ -70,7 +68,6 @@ class TrelloManager:
             headers=self.base_header(),
             params=self.credentials()
         )
-        # print(response.status_code)
         if response.status_code == 200:
             return json.loads(response.text)
 
@@ -105,6 +102,21 @@ class TrelloManager:
         if response.status_code == 200:
             return json.loads(response.text)
 
+    def get_members_fullname_by_id_member(self, id_, id_member):
+
+        print('id_', id_)
+        print('id member', id_member)
+        url = f"https://api.trello.com/1/boards/{id_}/members/{id_member}"
+        response = requests.request(
+            "GET",
+            url,
+            headers=self.base_header(),
+            params=self.credentials()
+        )
+        print('status code', response.status_code)
+        if response.status_code == 200:
+            print('json', json.loads(response.text))
+            return json.loads(response.text)
 
 # trello = TrelloManager('dav')
 # print(trello.trello_token)
