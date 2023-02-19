@@ -93,24 +93,24 @@ def create_new_task(message):
             bot.send_message(
                 message.from_user.id,
                 messages.CREATE_TASK,
-                reply_markup=keyboards.get_inline_boards_btn(trello_username, "new_task")
+                reply_markup=keyboards.get_inline_boards_btn(trello_username, "newtask")
             )
             bot.set_state(message.from_user.id, CreateNewTask.board, message.chat.id)
         else:
             bot.send_message(message.from_user.id, messages.TRELLO_USERNAME_NOT_FOUND)
 
 
-@bot.callback_query_handler(lambda call: call.data.startswith("new_task"))
+@bot.callback_query_handler(lambda call: call.data.startswith("newtask"))
 def set_new_task_name(call):
     message = call.message
     trello_username = utils.get_trello_username_by_chat_id('chat.csv', message.from_user.id)
     trello = TrelloManager(trello_username)
-    board_id = call.data.split("_")[2]
-
+    board_id = call.data.split("_")[1]
+    keyboard = keyboards.get_list_btn(trello, board_id, 'list_name')
     bot.send_message(
         call.from_user.id,
         messages.SELECT_LIST,
-        reply_markup=keyboards.get_list_btn(trello, board_id, 'list_name')
+        reply_markup=keyboard
     )
     bot.set_state(call.from_user.id, CreateNewTask.name, message.chat.id)
     with bot.retrieve_data(call.from_user.id, message.chat.id) as data:
@@ -140,12 +140,12 @@ def set_task_name(message):
     bot.register_next_step_handler(msg, set_task_description)
 
 
-# @bot.message_handler(state=CreateNewTask.description)
 def set_task_description(message):
     with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
         data['task_desc'] = message.text
         board_id = data['task_board_id']
     trello_username = utils.get_trello_username_by_chat_id('chat.csv', message.from_user.id)
+    bot.send_message(message.from_user.id, 'Foydalanuvchilar yuklanmoqda...\nIltimos kutib turing.')
     keyboard = keyboards.get_members_btn(trello_username, board_id, 'new_task_member')
     bot.set_state(message.from_user.id, CreateNewTask.members, message.chat.id)
     bot.send_message(
@@ -154,23 +154,26 @@ def set_task_description(message):
     )
 
 
-@bot.callback_query_handler(lambda call: call.data.startswith('new_task_member'))
-def get_member_id(call):
-    message = call.message
-    member_id = call.data.split("_")[3]
-    bot.send_message(message.from_user.id, messages.TASK_LABELS)
-    bot.set_state(message.from_user.id, CreateNewTask.labels, message.chat.id)
-    with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
-        data['member_id'] = member_id
-
-
-@bot.callback_query_handler(lambda c: c.data.startswith("create_list_task"))
+@bot.callback_query_handler(lambda c: c.data.startswith("new_task_member"))
 def get_list_id_for_new_task(call):
     message = call.message
     list_id = call.data.split("_")[3]
-    bot.set_state(message.from_user.id, CreateNewTask.name, message.chat.id)
-    with bot.retrieve_data(message.from_user.id, message.chat.id) as file:
-        file["task_list_id"] = list_id
+    bot.set_state(call.from_user.id, CreateNewTask.name, message.chat.id)
+    user_name = utils.get_trello_username_by_chat_id('chat.csv', call.from_user.id)
+    trello = TrelloManager(user_name)
+
+    with bot.retrieve_data(call.from_user.id, message.chat.id) as data:
+        data["member_id"] = list_id
+        print(data)
+        param = {
+            'board': data.get('task_board_id'),
+            'idList': data.get('task_list_id'),
+            'name': data.get('task_name'),
+            'description': data.get('task_desc'),
+            'members': data.get('member_id')
+        }
+        trello.create_new_card(param)
+    bot.send_message(call.from_user.id, 'Malumotlar saqlandi')
 
 
 def my_commands():
@@ -188,4 +191,3 @@ if __name__ == "__main__":
     print('started...')
     bot.set_my_commands(my_commands())
     bot.infinity_polling()
-

@@ -1,6 +1,5 @@
 from telebot.types import (
     InlineKeyboardButton,
-    ReplyKeyboardRemove,
     ReplyKeyboardMarkup,
     InlineKeyboardMarkup,
     KeyboardButton
@@ -14,7 +13,6 @@ def get_get_boards_btn(trello_username):
     boards = TrelloManager(trello_username).get_board()
     last_board = None
     second_last_board = None
-
     if len(boards) % 3 == 1:
         last_board = boards.pop()
     elif len(boards) % 3 == 2:
@@ -38,6 +36,7 @@ def get_get_boards_btn(trello_username):
 def get_inline_boards_btn(trello_username, action):
     inline_boards_btn = InlineKeyboardMarkup()
     boards = TrelloManager(trello_username).get_board()
+    print(boards)
     if len(boards) % 2 == 0:
         last_board = None
     else:
@@ -60,11 +59,11 @@ def get_inline_boards_btn(trello_username, action):
 def get_list_btn(trello, board_id, action):
     list_btn = InlineKeyboardMarkup()
     lists = trello.get_list_on_a_board(board_id)
-
-    if len(lists) % 2 == 0:
-        last_list = None
-    else:
+    print()
+    if len(lists) % 2 == 1:
         last_list = lists.pop()
+    else:
+        last_list = None
 
     for list_index in range(0, len(lists) - 1, 2):
         list_btn.add(
@@ -107,9 +106,17 @@ def get_inline_list_btn(trello, board_id, action):
 
 def get_members_btn(trello_username, board_id, action):
     members = TrelloManager(trello_username).get_board_members(board_id)
-    trello = TrelloManager(trello_username).get_members_fullname_by_id_member(members[0].get('id'),
-                                                                              members[0].get('idMember'))
+
+    for member in members:
+        id_member = member.get('idMember')
+        # member["fullName"] = TrelloManager(trello_username).get_members_fullname_by_id_member(
+        #     member['idMember'].get('fullName'))
+        member_data = TrelloManager(trello_username).get_members_fullname_by_id_member(id_member)
+        full_name = member_data.get('fullName')
+        member['fullName'] = full_name
+
     members_btn = InlineKeyboardMarkup()
+
     if len(members) % 2 == 0:
         last_member = None
     else:
@@ -118,17 +125,28 @@ def get_members_btn(trello_username, board_id, action):
     for member_index in range(0, len(members) - 1, 2):
         members_btn.add(
             InlineKeyboardButton(
-                members[member_index].get('idMember'),
+                members[member_index].get('fullName'),
                 callback_data=f"{action}_{members[member_index].get('id')}"
             ),
             InlineKeyboardButton(
-                members[member_index + 1].get('idMember'),
+                members[member_index + 1].get('fullName'),
                 callback_data=f"{action}_{members[member_index + 1].get('id')}"
             )
         )
     if last_member:
         members_btn.add(
-            InlineKeyboardButton(last_member.get('idMember'),
+            InlineKeyboardButton(last_member.get('fullName'),
                                  callback_data=f"{action}_{last_member.get('id')}")
         )
     return members_btn
+
+
+user_name = 'davlatbekmamirov1'
+board_id = '63ea22a4dd3aa382a077fb9f'
+action = 'new_list'
+trello = TrelloManager('davlatbekmamirov1')
+board = '63ea22a4dd3aa382a077fb9f'
+# print(get_members_btn(trello, board_id, 'action'))
+# print(get_inline_boards_btn(user_name, 'ac'))
+# print(trello.get_board_members(board_id))
+print(get_list_btn(trello, board_id, 'ac'))
