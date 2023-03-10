@@ -9,5 +9,5 @@
 ### add card
 ![Screenshot from 2023-02-16 23-47-17](https://user-images.githubusercontent.com/109902921/219459601-3beeb8d4-fc88-4598-a3a5-5db43e5cd52a.png)
 
-## logic error
-![Screenshot from 2023-02-17 00-03-38](https://user-images.githubusercontent.com/109902921/219462654-342fde0e-f668-4cbd-90ae-357a9781246b.png)
+## create new card 
+![Screenshot from 2023-02-19 22-47-06](https://user-images.githubusercontent.com/109902921/219966264-c2d79ece-13ab-4b82-ae10-b28e28be959b.png)
