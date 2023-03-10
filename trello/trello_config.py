@@ -131,15 +131,3 @@ class TrelloManager:
         )
         if response.status_code == 200:
             return json.loads(response.text)
-
-# trello = TrelloManager('davlatbekmamirov1')
-# print(trello.trello_token)
-# print(trello.trello_api_key)
-# id_ = "63ea22a4dd3aa382a077fbaa"
-# id_member = "63e9d509205aef8fd7069794"
-# board_id = '63ea22a4dd3aa382a077fb9f'
-# print(trello.get_members_fullname_by_id_member(id_, id_member))
-# data = trello.get_board_members(board_id=board_id)
-# for i in data:
-#     print('id member', i.get('idMember'))
-#     print(trello.get_members_fullname_by_id_member(i.get('idMember')))

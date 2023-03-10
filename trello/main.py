@@ -3,8 +3,11 @@ from environs import Env
 import messages
 import utils
 import keyboards
-from trello import TrelloManager
+from trello_config import TrelloManager
 from states import CreateNewTask
+from input_data import connection
+from psycopg2.extras import RealDictCursor
+from querrys import *
 
 env = Env()
 env.read_env()
@@ -27,12 +30,11 @@ def cancel(message):
 
 @bot.message_handler(commands=['register'])
 def username_registration(message):
-    if not utils.check_chat_id_from_csv('chat.csv', message.from_user.id):
-        bot.send_message(message.from_user.id, messages.SEND_USERNAME)
-        bot.register_next_step_handler(message, get_trello_username)
-    else:
-        bot.send_message(message.from_user.id, messages.ALREADY_EXIST)
-
+    chat_id = message.chat.id
+    with connection.cursor(cursor_factory=RealDictCursor) as cur:
+        cur.execute(GET_USER_BY_CHAT_ID, (chat_id,))
+        user = cur.fetchone()
+        if user:
 
 def get_trello_username(message):
     utils.write_chat_csv('chat.csv', message)
