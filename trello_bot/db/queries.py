@@ -13,7 +13,7 @@ UPDATE_USER_TRELLO_BY_CHAT_ID = '''
     WHERE chat_id = %s
 '''
 
-GER_USER_BY_TRELLO_ID = '''
+GET_USER_BY_TRELLO_ID = '''
     SELECT trello_id from users WHERE trello_id = %s
 '''
 
